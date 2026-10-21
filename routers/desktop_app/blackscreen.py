@@ -63,7 +63,7 @@ class BlackScreen:
             self.timer_label.config(
                 text=f"IDLE TIME\n\n{minutes:02d}:{seconds:02d}"
             )
-            self.timer_job = self.window.after(1000, self.update_timer)
+            self.timer_job = self.window.after(500, self.update_timer)
         except tk.TclError:
             pass
 

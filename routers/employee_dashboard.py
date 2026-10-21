@@ -328,22 +328,20 @@ class EmployeeDashboard:
 
         if inactive >= IDLE_THRESHOLD:
             if self.idle_started is None:
-                self.idle_started = self.last_input
+                # 30 seconds threshold mudindhadhum idle time 1 second-lirundhu start aagum
+                self.idle_started = self.last_input + IDLE_THRESHOLD
                 self.black.show(
                     IDLE_THRESHOLD,
                     start_time=self.idle_started
                 )
 
-            current_idle = now - self.idle_started
-            idle_seconds = (
-                self.total_idle
-                + max(0, current_idle)
-            )
+            current_idle = max(0, now - self.idle_started)
+            idle_seconds = self.total_idle + current_idle
             status = "Idle"
         else:
             if self.idle_started is not None:
-                completed_idle = now - self.idle_started
-                self.total_idle += max(0, completed_idle)
+                completed_idle = max(0, now - self.idle_started)
+                self.total_idle += completed_idle
                 self.idle_started = None
                 self.black.hide()
 
