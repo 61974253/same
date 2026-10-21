@@ -216,6 +216,13 @@ class EmployeeDashboard:
         self.start_input_listeners()
         self.update_times()
 
+        # Save Attendance IN to database
+        threading.Thread(
+            target=self.save_login,
+            args=(self.user_id,),
+            daemon=True
+        ).start()
+
     def show_time_dashboard(self):
         self.clear_screen()
 
@@ -385,11 +392,12 @@ class EmployeeDashboard:
         print("Working seconds:", int(working_seconds))
         print("Idle seconds:", int(idle_seconds))
 
-        # Existing backend endpoint accepts user_id as a query parameter.
-        # This request saves attendance OUT only if that endpoint succeeds.
+        idle_minutes = round(idle_seconds / 60, 2)
+
+        # Saves attendance OUT with idle time to database
         threading.Thread(
             target=self.save_logout,
-            args=(self.user_id,),
+            args=(self.user_id, idle_minutes),
             daemon=True
         ).start()
 
@@ -402,11 +410,26 @@ class EmployeeDashboard:
 
         self.show_login()
 
-    def save_logout(self, user_id):
+    def save_login(self, user_id):
+        try:
+            response = requests.post(
+                f"{API_URL}/attendance/in",
+                params={"user_id": user_id},
+                timeout=10
+            )
+            print("ATTENDANCE IN STATUS:", response.status_code)
+            print("ATTENDANCE IN RESPONSE:", response.text)
+        except requests.RequestException as exc:
+            print("Attendance IN API error:", exc)
+
+    def save_logout(self, user_id, idle_minutes=0.0):
         try:
             response = requests.post(
                 f"{API_URL}/attendance/out",
-                params={"user_id": user_id},
+                params={
+                    "user_id": user_id,
+                    "idle_time_minutes": idle_minutes
+                },
                 timeout=10
             )
 
