@@ -1,15 +1,26 @@
 
 import os
+import sys
 import time
 import threading
 import tkinter as tk
 from datetime import datetime
 
+_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROUTERS_DIR = os.path.dirname(_CURRENT_DIR)
+_PROJECT_ROOT = os.path.dirname(_ROUTERS_DIR)
+for _p in (_CURRENT_DIR, _ROUTERS_DIR, _PROJECT_ROOT):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import requests
 from pynput import mouse, keyboard
 from dotenv import load_dotenv
 
-from routers.desktop_app.blackscreen import BlackScreen
+try:
+    from routers.desktop_app.blackscreen import BlackScreen
+except ImportError:
+    from desktop_app.blackscreen import BlackScreen
 
 load_dotenv()
 
@@ -138,8 +149,10 @@ class MonitorApp:
 
     def close(self):
         self.closed = True
-        self.mouse_listener.stop()
-        self.keyboard_listener.stop()
+        if self.mouse_listener:
+            self.mouse_listener.stop()
+        if self.keyboard_listener:
+            self.keyboard_listener.stop()
         self.black.hide()
         self.root.destroy()
 
@@ -149,3 +162,5 @@ class MonitorApp:
 
 if __name__ == "__main__":
     MonitorApp().run()
+
+

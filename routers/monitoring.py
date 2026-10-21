@@ -26,7 +26,7 @@ def save_event(
     user_id = event.user_id
 
     result = (
-        supabase.table("users_activity")
+        supabase.table("user_activity")
         .select("number,idle_time_minutes")
         .eq("user_id", user_id)
         .eq("login", True)
@@ -59,7 +59,7 @@ def save_event(
         )
 
     saved = (
-        supabase.table("users_activity")
+        supabase.table("user_activity")
         .update(update)
         .eq("number", row["number"])
         .execute()

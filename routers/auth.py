@@ -7,16 +7,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pwdlib import PasswordHash
 
+
 from database.connection import supabase
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
-password_hash = PasswordHash.recommended()
+router = APIRouter()
 
-JWT_SECRET = os.getenv("JWT_SECRET")
-if not JWT_SECRET:
-    raise RuntimeError("JWT_SECRET missing in .env")
-
-JWT_ALGORITHM = "HS256"
 
 
 class LoginRequest(BaseModel):
@@ -46,24 +41,6 @@ def login(data: LoginRequest):
             "message": "Login successful",
             "user_id": user["user_id"]
         }
+       
 
 
-    now = datetime.now(timezone.utc)
-    token = jwt.encode(
-        {
-            "sub": str(user["user_id"]),
-            "role": user.get("role", "employee"),
-            "iat": now,
-            "exp": now + timedelta(hours=8),
-        },
-        JWT_SECRET,
-        algorithm=JWT_ALGORITHM,
-    )
-
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user_id": user["user_id"],
-        "name": user.get("name", ""),
-        "role": user.get("role", "employee"),
-    }

@@ -33,7 +33,7 @@ def attendance_in(user=Depends(current_user)):
 
     # Prevent duplicate open sessions.
     result = (
-        supabase.table("users_activity")
+        supabase.table("user_activity")
         .select("number")
         .eq("user_id", user_id)
         .eq("login", True)
@@ -46,7 +46,7 @@ def attendance_in(user=Depends(current_user)):
         raise HTTPException(409, "Attendance session already exists")
 
     saved = (
-        supabase.table("users_activity")
+        supabase.table("user_activity")
         .insert({
             "user_id": user_id,
             "login": True,
@@ -72,7 +72,7 @@ def attendance_out(user_id: str):
     user_id = user_id
 
     result = (
-        supabase.table("users_activity")
+        supabase.table("user_activity")
         .select("number")
         .eq("user_id", user_id)
         .eq("login", True)
@@ -81,14 +81,30 @@ def attendance_out(user_id: str):
         .execute()
     )
 
-    if not result.data:
-        raise HTTPException(404, "No active attendance session")
-
-    record_id = result.data[0]["number"]
     now = datetime.now(timezone.utc)
 
+    if not result.data:
+        saved = (
+            supabase.table("user_activity")
+            .insert({
+                "user_id": user_id,
+                "login": False,
+                "login_time": now.isoformat(),
+                "login_date": now.date().isoformat(),
+                "logout": True,
+                "logout_time": now.isoformat(),
+                "logout_date": now.date().isoformat(),
+                "activity": "LOGOUT",
+                "created_at": now.isoformat(),
+            })
+            .execute()
+        )
+        return {"message": "Attendance OUT saved", "record": saved.data}
+
+    record_id = result.data[0]["number"]
+
     saved = (
-        supabase.table("users_activity")
+        supabase.table("user_activity")
         .update({
             "logout": True,
             "logout_time": now.isoformat(),
