@@ -5,7 +5,10 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from pwdlib import PasswordHash
+try:
+    from pwdlib import PasswordHash
+except ImportError:
+    PasswordHash = None
 
 
 from database.connection import supabase

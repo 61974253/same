@@ -13,6 +13,20 @@ router = APIRouter(prefix="/attendance", tags=["Attendance"])
 security = HTTPBearer(auto_error=False)
 
 
+def current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+):
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            os.environ.get("JWT_SECRET", "secret"),
+            algorithms=["HS256"],
+        )
+        return payload
+    except Exception:
+        raise HTTPException(401, "Invalid or expired token")
+
+
 def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ):

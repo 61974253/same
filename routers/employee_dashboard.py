@@ -329,23 +329,22 @@ class EmployeeDashboard:
         if inactive >= IDLE_THRESHOLD:
             if self.idle_started is None:
                 self.idle_started = self.last_input
+                self.black.show(
+                    IDLE_THRESHOLD,
+                    start_time=self.idle_started
+                )
 
-                # Idle start aana full-screen black screen open aagum
-                self.black.show(IDLE_THRESHOLD, start_time=self.idle_started)
-
+            current_idle = now - self.idle_started
             idle_seconds = (
                 self.total_idle
-                + now - self.idle_started
+                + max(0, current_idle)
             )
             status = "Idle"
         else:
             if self.idle_started is not None:
-                self.total_idle += (
-                    now - self.idle_started
-                )
+                completed_idle = now - self.idle_started
+                self.total_idle += max(0, completed_idle)
                 self.idle_started = None
-
-                # User thirumba active aana black screen close aagum
                 self.black.hide()
 
             idle_seconds = self.total_idle
@@ -354,15 +353,9 @@ class EmployeeDashboard:
         working_seconds = max(0, overall - idle_seconds)
 
         self.status_label.config(text=f"Status: {status}")
-        self.overall_label.config(
-            text=f"Overall Time: {self.format_time(overall)}"
-        )
-        self.working_label.config(
-            text=f"Working Time: {self.format_time(working_seconds)}"
-        )
-        self.idle_label.config(
-            text=f"Idle Time: {self.format_time(idle_seconds)}"
-        )
+        self.overall_label.config(text=f"Overall Time: {self.format_time(overall)}")
+        self.working_label.config(text=f"Working Time: {self.format_time(working_seconds)}")
+        self.idle_label.config(text=f"Idle Time: {self.format_time(idle_seconds)}")
 
         self.root.after(500, self.update_times)
 
@@ -376,7 +369,7 @@ class EmployeeDashboard:
         now = time.monotonic()
 
         if self.idle_started is not None:
-            self.total_idle += now - self.idle_started
+            self.total_idle += max(0, now - self.idle_started)
             self.idle_started = None
 
         self.black.hide()
@@ -409,6 +402,7 @@ class EmployeeDashboard:
         )
 
         self.show_login()
+
 
     def save_login(self, user_id):
         try:
